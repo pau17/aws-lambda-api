@@ -1,0 +1,13 @@
+{
+  "name": "mi-aplicacion",
+  "version": "1.0.0",
+  "description": "Reto Técnico",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1597.0",
+    "express": "^4.19.2"
+  }
+}

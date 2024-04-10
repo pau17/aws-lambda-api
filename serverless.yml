@@ -1,14 +1,42 @@
 service: AWS-LAMBDA-API
-frameworkVersion: '3'
+frameworkVersion: "3"
 
 provider:
   name: aws
   runtime: nodejs18.x
+  stage: dev
+  region: eu-west-1
 
 functions:
-  api:
-    handler: index.handler
+  ListPeople:
+    handler: src/services/peopleServices.ListPeople
     events:
-      - httpApi:
-          path: /
+      - http:
+          path: /list
           method: get
+  registerPeople:
+    handler: src/services/peopleServices.registerPeople
+    events:
+      - http:
+          path: /save/{id}
+          method: post
+
+resources:
+  Resources:
+    PeopleSwapiTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: PeopleSwapiTable
+        AttributeDefinitions:
+          - AttributeName: peopleId
+            AttributeType: S
+          - AttributeName: name
+            AttributeType: S
+        KeySchema:
+          - AttributeName: peopleId
+            KeyType: HASH
+          - AttributeName: name
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
