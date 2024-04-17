@@ -1,7 +1,8 @@
-const AWS = require("aws-sdk");
-const DynamoDB = require("aws-sdk/clients/dynamodb");
+import { DynamoDBClient, ScanCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
+import fetch from 'node-fetch';
+import { httpResponses } from '../utils/responsesApi'; // Importa httpResponses desde responsesApi.js
 
-const dbClient = new DynamoDB.DocumentClient();
+const dbClient = new DynamoDBClient();
 
 const listPeople = () => {
     return new Promise(async (resolve, reject) => {
@@ -10,7 +11,8 @@ const listPeople = () => {
         };
 
         try {
-            const { Items } = await dbClient.scan(params).promise();
+            const command = new ScanCommand(params);
+            const { Items } = await dbClient.send(command);
             return resolve(Items);
         } catch (err) {
             console.log('people list: ', err);
@@ -26,20 +28,19 @@ const registerPeople = (event) => {
             const data = await getPeopleSwapiApi(peopleId);
             await postPeopleDynamoDB(data);
 
-            resolve({
+            resolve(httpResponses.httpOk({ // Utiliza httpOk de httpResponses
                 statusCode: 200,
                 body: "Datos guardados en DynamoDB exitosamente."
-            });
+            }));
         } catch (error) {
             console.error("Error al procesar y guardar los datos:", error.message);
-            reject({
+            reject(httpResponses.httpBadRequest({ // Utiliza httpBadRequest de httpResponses
                 statusCode: 500,
                 body: JSON.stringify(error.message)
-            });
+            }));
         }
     });
 };
-
 
 const getPeopleSwapiApi = async (peopleId) => {
     const swapiApi = `https://swapi.dev/api/people/${peopleId}`;
@@ -57,37 +58,36 @@ const getPeopleSwapiApi = async (peopleId) => {
 };
 
 const postPeopleDynamoDB = async (data) => {
-    const id = v4();
-    const translatedData = translateAttributes(data);
-    translatedData.id = id;
-
     const params = {
-    TableName: "PeopleSwapiTable",
-    Item: translatedData,
+        TableName: "PeopleSwapiTable",
+        Item: data,
     };
 
-    await DynamoDB.put(params).promise();
+    try {
+        const command = new PutItemCommand(params);
+        await dbClient.send(command);
+    } catch (error) {
+        throw new Error(`Error al guardar los datos en DynamoDB: ${error.message}`);
+    }
 };
-
 const translateAttributes = (data) => {
-const mapeo = {
-    name: "nombre",
-    height: "altura",
-    mass: "masa",
-    hair_color: "color_cabello",
-    skin_color: "color_piel",
-    eye_color: "color_ojos",
-    birth_year: "anio_nacimiento",
-    gender: "genero",
+    const mapeo = {
+        name: "nombre",
+        height: "altura",
+        mass: "masa",
+        hair_color: "color_cabello",
+        skin_color: "color_piel",
+        eye_color: "color_ojos",
+        birth_year: "anio_nacimiento",
+        gender: "genero",
     };
     return Object.keys(data).reduce((obj, key) => {
         obj[mapeo[key] || key] = data[key];
         return obj;
-    }, 
-    {});
+    }, {});
 }
 
-module.exports = {
+export {
     listPeople,
     registerPeople,
 };

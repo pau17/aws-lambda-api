@@ -2,12 +2,21 @@
   "name": "mi-aplicacion",
   "version": "1.0.0",
   "description": "Reto Técnico",
-  "main": "app.js",
+  "main": "index.js",
+  "type": "module",
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "test": "set NODE_OPTIONS=--experimental-vm-modules && jest"
   },
   "dependencies": {
-    "aws-sdk": "^2.1597.0",
-    "express": "^4.19.2"
+    "@aws-sdk/client-dynamodb": "^3.556.0",
+    "@aws-sdk/credential-providers": "^3.556.0",
+    "aws-sdk": "^2.1600.0",
+    "express": "^4.19.2",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.4"
   }
 }

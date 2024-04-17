@@ -21,6 +21,8 @@ const httpResponses = {
     httpNotFound(data = {}) {
         return responseBody(404, data);
     }
-}
+};
 
-module.exports = httpResponses;
+export {
+    httpResponses,
+};

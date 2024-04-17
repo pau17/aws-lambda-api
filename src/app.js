@@ -1,12 +1,7 @@
-const express = require("express");
-const routes = require("./routes");
+import express from 'express';
+import routes from './routers/router'
 
 const app = express();
-
-
 app.use("/", routes);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor escuchando en el puerto ${PORT}`);
-});
+module.exports = app;

@@ -1,24 +1,29 @@
-const { listPeople, registerPeople } = require("../services/getPeople");
-const { httpOk, httpBadRequest } = require("../utils/responsesApi");
+import { listPeople, registerPeople } from "../services/peopleSevices";
+import responsesApi  from "../utils/responsesApi";
 
-module.exports.getPeople = async (callback) => {
+export async function getPeople(callback) {
     try {
 
         var response = await listPeople();
-        return callback(null, httpOk(response));
+        return callback(null, responsesApi.httpOk(response));
 
     } catch (err) {
-        return callback(null, httpBadRequest(err));
+        return callback(null, responsesApi.httpBadRequest(err));
     }
-};
+}
 
-module.exports.postPeople = async (event, callback) => {
+export async function postPeople(event, callback) {
     try {
 
         var response = await registerPeople(JSON.parse(event.body));
-        return callback(null, httpOk(response));
+        return callback(null, responsesApi.httpOk(response));
 
     } catch (err) {
-        return callback(null, httpBadRequest(err));
+        return callback(null, responsesApi.httpBadRequest(err));
     }
+}
+
+module.exports = {
+    postPeople,
+    getPeople,
 };
