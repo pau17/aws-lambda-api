@@ -1,29 +1,33 @@
-import { listPeople, registerPeople } from "../services/peopleSevices";
-import responsesApi  from "../utils/responsesApi";
+import { listPeople, registerPeople } from "../services/peopleServices.js";
+import { httpResponses } from "../utils/responsesApi.js";
 
-export async function getPeople(callback) {
+async function getPeople(event, callback) {
     try {
+        const response = await listPeople();
+        console.log("imprimiendo response getPeople: " + JSON.stringify(response));
 
-        var response = await listPeople();
-        return callback(null, responsesApi.httpOk(response));
-
+        // Verifica si la respuesta no está vacía
+        if (response && response.length > 0) {
+            return callback(null, httpResponses.httpOk({ people: response })); 
+        } else {
+            return callback(null, httpResponses.httpNotFound({ message: 'No se encontraron personas.' }));
+        }
     } catch (err) {
-        return callback(null, responsesApi.httpBadRequest(err));
+        console.error('Error al obtener personas:', err);
+        return callback(null, httpResponses.httpBadRequest({ error: 'Error al obtener personas.' }));  
     }
 }
 
-export async function postPeople(event, callback) {
+async function postPeople(event, callback) {
     try {
-
-        var response = await registerPeople(JSON.parse(event.body));
-        return callback(null, responsesApi.httpOk(response));
-
+        const response = await registerPeople(JSON.parse(event.body));
+        return callback(null, httpResponses.httpOk(response));  
     } catch (err) {
-        return callback(null, responsesApi.httpBadRequest(err));
+        return callback(null, httpResponses.httpBadRequest(err));  
     }
 }
 
-module.exports = {
+export {
     postPeople,
     getPeople,
 };

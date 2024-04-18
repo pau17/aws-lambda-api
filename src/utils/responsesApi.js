@@ -1,28 +1,27 @@
-const responseBody = (code = 502, data = {}) => {
+const responseBody = (statusCode, data) => {
     return {
+        statusCode: statusCode,
         headers: {
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': '*'
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE',
+            'Content-Type': 'application/json'
         },
-        statusCode: code,
         body: JSON.stringify(data)
     };
 }
 
 const httpResponses = {
-    httpOk(data = {}) {
+    httpOk(data) {
         return responseBody(200, data);
     },
 
-    httpBadRequest(data = {}) {
-        return responseBody(400, data);
+    httpBadRequest(error) {
+        return responseBody(400, { error: error });
     },
 
-    httpNotFound(data = {}) {
-        return responseBody(404, data);
+    httpNotFound() {
+        return responseBody(404, { error: 'Not found' });
     }
 };
 
-export {
-    httpResponses,
-};
+export { httpResponses };

@@ -1,33 +1,43 @@
 import request from 'supertest';
-import app from '../src/app'; // Importa la aplicación Express
+import  app  from './AmazonApi'; // Ajusta la ruta según la ubicación real de tu archivo principal
+import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 
-describe('POST /api/people/save/:id', () => {
-    it('responds with status 200 and returns a success message', async () => {
-        const mockData = { name: 'John', age: 30 }; // Datos simulados
-        const response = await request(app)
-            .post('/api/people/save/123') // ID simulado
-            .send(mockData);
-        expect(response.status).toBe(200);
-        expect(response.body).toEqual(expect.objectContaining({ message: 'Success' }));np
-    });
-
-    it('responds with status 400 if there is an error', async () => {
-        const response = await request(app)
-            .post('/api/people/save/123')
-            .send({}); // Envía datos inválidos para provocar un error
-        expect(response.status).toBe(400);
-    });
+// Mock DynamoDB
+jest.mock('aws-sdk/clients/dynamodb', () => {
+  const mockDocumentClient = {
+    scan: jest.fn(),
+    put: jest.fn()
+  };
+  return {
+    DocumentClient: jest.fn(() => mockDocumentClient)
+  };
 });
 
-describe('GET /api/people/list', () => {
-    it('responds with status 200 and returns a list of people', async () => {
-        const response = await request(app).get('/api/people/list');
-        expect(response.status).toBe(200);
-        expect(response.body).toEqual(expect.any(Array)); // Verifica que la respuesta sea un array
-    });
+describe('Amazon API Integration Tests', () => {
+  describe('GET /dev/list', () => {
+    it('should return a list of people', async () => {
+      const sampleData = [{ nombre: 'Luke Skywalker', color_cabello: 'blond', masa: '77', createAt: '2024-04-18T19:36:24.626Z', altura: '172', color_piel: 'fair', id: '75c73839-d74c-4cd0-b204-4bb8fdb479a9', color_ojos: 'blue', genero: 'male', anio_nacimiento: '19BBY' }];
+      DocumentClient.prototype.scan.mockImplementationOnce((params, callback) => {
+        callback(null, { Items: sampleData });
+      });
 
-    it('responds with status 400 if there is an error', async () => {
-        const response = await request(app).get('/api/people/list');
-        expect(response.status).toBe(400);
+      const response = await request(app).get('/dev/list');
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual(sampleData);
     });
+  });
+
+  describe('POST /dev/save/:id', () => {
+    it('should register a person', async () => {
+      const requestBody = { nombre: 'Leia Organa' }; // Datos de ejemplo
+      const sampleResponse = { message: 'Person registered successfully' }; // Respuesta de ejemplo
+      DocumentClient.prototype.put.mockImplementationOnce((params, callback) => {
+        callback(null, {});
+      });
+
+      const response = await request(app).post('/dev/save/1').send(requestBody);
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual(sampleResponse);
+    });
+  });
 });

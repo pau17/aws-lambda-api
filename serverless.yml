@@ -6,10 +6,15 @@ provider:
   runtime: nodejs18.x
   stage: dev
   region: eu-west-1
+  apiGateway:
+    shouldStartNameWithService: true
+
+plugins:
+  - serverless-offline
 
 functions:
-  ListPeople:
-    handler: src/services/peopleServices.ListPeople
+  listPeople:
+    handler: src/services/peopleServices.listPeople
     events:
       - http:
           path: /list
@@ -28,14 +33,14 @@ resources:
       Properties:
         TableName: PeopleSwapiTable
         AttributeDefinitions:
-          - AttributeName: peopleId
+          - AttributeName: id
             AttributeType: S
-          - AttributeName: name
+          - AttributeName: createAt
             AttributeType: S
         KeySchema:
-          - AttributeName: peopleId
+          - AttributeName: id
             KeyType: HASH
-          - AttributeName: name
+          - AttributeName: createAt
             KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 1
