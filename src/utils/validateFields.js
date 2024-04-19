@@ -1,5 +1,5 @@
 const peopleModel = {
-    name: '',
+    name: '',        
     height: '',
     mass: '',
     hair_color: '',

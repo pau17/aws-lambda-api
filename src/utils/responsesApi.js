@@ -1,26 +1,27 @@
-const responseBody = (statusCode, data) => {
+// responsesApi.js
+const responseBody = (code = 502, data = {}) => {
     return {
-        statusCode: statusCode,
         headers: {
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE',
-            'Content-Type': 'application/json'
+            'Access-Control-Allow-Methods': '*'
         },
+        statusCode: code,
         body: JSON.stringify(data)
     };
 }
 
 const httpResponses = {
-    httpOk(data) {
+    httpOk(data = {}) {
+        console.log("VER DATA" + JSON.stringify(data));
         return responseBody(200, data);
     },
 
-    httpBadRequest(error) {
-        return responseBody(400, { error: error });
+    httpBadRequest(data = {}) {
+        return responseBody(400, data);
     },
 
-    httpNotFound() {
-        return responseBody(404, { error: 'Not found' });
+    httpNotFound(data = {}) {
+        return responseBody(404, data);
     }
 };
 

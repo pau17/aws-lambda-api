@@ -1,43 +1,67 @@
-import request from 'supertest';
-import  app  from './AmazonApi'; // Ajusta la ruta según la ubicación real de tu archivo principal
-import { DocumentClient } from 'aws-sdk/clients/dynamodb';
+import { postPeople, getPeople } from "/../src/api/amazonApi.js";
+import { listPeople, registerPeople } from '../src/services/peopleServices';
+import { httpResponses } from '../src/utils/responsesApi';
 
-// Mock DynamoDB
-jest.mock('aws-sdk/clients/dynamodb', () => {
-  const mockDocumentClient = {
-    scan: jest.fn(),
-    put: jest.fn()
-  };
-  return {
-    DocumentClient: jest.fn(() => mockDocumentClient)
-  };
-});
+// Mock de la función listPeople para simular su comportamiento
+jest.mock('../src/services/peopleServices', () => ({
+  listPeople: jest.fn(),
+  registerPeople: jest.fn(),
+}));
 
-describe('Amazon API Integration Tests', () => {
-  describe('GET /dev/list', () => {
-    it('should return a list of people', async () => {
-      const sampleData = [{ nombre: 'Luke Skywalker', color_cabello: 'blond', masa: '77', createAt: '2024-04-18T19:36:24.626Z', altura: '172', color_piel: 'fair', id: '75c73839-d74c-4cd0-b204-4bb8fdb479a9', color_ojos: 'blue', genero: 'male', anio_nacimiento: '19BBY' }];
-      DocumentClient.prototype.scan.mockImplementationOnce((params, callback) => {
-        callback(null, { Items: sampleData });
-      });
+// Inicia la suite de pruebas
+describe('People Handlers', () => {
+  // Prueba la función getPeople
+  describe('getPeople', () => {
+    it('should return list of people if exist', async () => {
+      // Mock de la respuesta de listPeople
+      listPeople.mockResolvedValue([
+        {
+          nombre: 'C-3PO',
+          color_cabello: 'n/a',
+          masa: '75',
+          createAt: '2024-04-18T22:37:56.035Z',
+          altura: '167',
+          color_piel: 'gold',
+          id: 'e8c20e12-87bd-4841-aa52-1b2df8beec96',
+          color_ojos: 'yellow',
+          genero: 'n/a',
+          anio_nacimiento: '112BBY'
+        },
+        // Otros objetos de personas simuladas
+      ]);
 
-      const response = await request(app).get('/dev/list');
-      expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual(sampleData);
+      // Mock de la función de callback
+      const callback = jest.fn();
+
+      // Ejecuta la función getPeople
+      await getPeople({}, {}, callback);
+
+      // Verifica si la función listPeople fue llamada
+      expect(listPeople).toHaveBeenCalled();
+
+      // Verifica si la función de callback fue llamada con la respuesta esperada
+      expect(callback).toHaveBeenCalledWith(null, httpResponses.httpOk({ people: listPeople.mock.results[0].value }));
     });
+
+    // Agrega más pruebas para otros escenarios
   });
 
-  describe('POST /dev/save/:id', () => {
-    it('should register a person', async () => {
-      const requestBody = { nombre: 'Leia Organa' }; // Datos de ejemplo
-      const sampleResponse = { message: 'Person registered successfully' }; // Respuesta de ejemplo
-      DocumentClient.prototype.put.mockImplementationOnce((params, callback) => {
-        callback(null, {});
-      });
+  // Prueba la función postPeople
+  describe('postPeople', () => {
+    it('should register a new person', async () => {
+      // Mock de la función de callback
+      const callback = jest.fn();
 
-      const response = await request(app).post('/dev/save/1').send(requestBody);
-      expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual(sampleResponse);
+      // Ejecuta la función postPeople con datos simulados
+      await postPeople({ body: JSON.stringify({ /* Datos simulados para el registro */ }) }, {}, callback);
+
+      // Verifica si la función registerPeople fue llamada con los datos correctos
+      expect(registerPeople).toHaveBeenCalledWith(expect.objectContaining({ /* Datos esperados */ }));
+
+      // Verifica si la función de callback fue llamada con la respuesta esperada
+      expect(callback).toHaveBeenCalledWith(null, httpResponses.httpOk(expect.any(Object))); // Ajusta el matcher según la respuesta esperada
     });
+
+    // Agrega más pruebas para otros escenarios
   });
 });

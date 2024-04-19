@@ -29,7 +29,9 @@ const listPeople = () => {
             }));
 
             console.log("Consulta de tabla DYNAMO: " + JSON.stringify(formattedItems))
-            resolve(formattedItems);  
+            resolve(httpResponses.httpOk({ 
+                formattedItems
+            }));
         } catch (err) {
             console.log('Error al listar personas: ', err);
             reject('Error al listar personas');  
@@ -46,7 +48,7 @@ const registerPeople = (event) => {
             const translatedData = translateAttributes(data);
             await postPeopleDynamoDB(translatedData);
 
-            resolve(httpResponses.httpOk({ // Utiliza httpOk de httpResponses
+            resolve(httpResponses.httpOk({ 
                 statusCode: 200,
                 body: "Datos guardados en DynamoDB exitosamente."
             }));
